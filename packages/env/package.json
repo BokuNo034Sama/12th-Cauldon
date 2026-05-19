@@ -1,0 +1,21 @@
+{
+  "name": "@12th-cauldron/env",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@12th-cauldron/eslint-config": "workspace:*",
+    "@12th-cauldron/typescript-config": "workspace:*"
+  }
+}

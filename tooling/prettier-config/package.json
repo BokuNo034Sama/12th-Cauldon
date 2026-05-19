@@ -1,0 +1,10 @@
+{
+  "name": "@12th-cauldron/prettier-config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "index.mjs",
+  "peerDependencies": {
+    "prettier": ">=3.0.0"
+  }
+}

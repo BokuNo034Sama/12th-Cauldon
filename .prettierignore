@@ -1,0 +1,11 @@
+﻿12_th_cauldron_prd_and_prompt_pack.md
+12_th_cauldron_prompt_pack.md
+mermaid-diagram.png
+node_modules
+.pnpm-store
+.turbo
+.next
+dist
+
+backend/src/generated
+

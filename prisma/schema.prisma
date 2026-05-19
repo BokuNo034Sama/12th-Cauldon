@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../backend/src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  MEMBER
+  GROUP_ADMIN
+  PLATFORM_ADMIN
+}
+
+enum RiskProfile {
+  CONSERVATIVE
+  BALANCED
+  GROWTH
+}
+
+enum GroupStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  MATURED
+  CLOSED
+}
+
+enum MemberStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+  REMOVED
+  EXITED
+}
+
+enum ContributionStatus {
+  PENDING
+  PAID
+  MISSED
+  FAILED
+  REFUNDED
+}
+
+enum InvestmentStatus {
+  PROPOSED
+  VOTING
+  SELECTED
+  ACTIVE
+  MATURED
+  CANCELLED
+}
+
+enum VoteChoice {
+  APPROVE
+  REJECT
+}
+
+enum TreasuryTransactionType {
+  CONTRIBUTION
+  INVESTMENT_ALLOCATION
+  INVESTMENT_RETURN
+  PAYOUT
+  REFUND
+  FEE
+  ADJUSTMENT
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+model User {
+  id                String             @id @default(uuid()) @db.Uuid
+  fullName          String             @map("full_name")
+  email             String             @unique
+  phone             String             @unique
+  role              UserRole           @default(MEMBER)
+  passwordHash      String?            @map("password_hash")
+  phoneVerifiedAt   DateTime?          @map("phone_verified_at")
+  emailVerifiedAt   DateTime?          @map("email_verified_at")
+  createdGroups     Group[]            @relation("GroupCreator")
+  memberships       GroupMember[]
+  contributions     Contribution[]
+  votes             Vote[]
+  sessions          Session[]
+  otpVerifications  OtpVerification[]
+  auditLogs         AuditLog[]         @relation("AuditActor")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  @@index([role])
+  @@map("users")
+}
+
+model Group {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  name                String
+  description         String?
+  riskProfile         RiskProfile             @map("risk_profile")
+  cycleDurationMonths Int                     @default(12) @map("cycle_duration_months")
+  monthlyContribution Decimal                 @map("monthly_contribution") @db.Decimal(14, 2)
+  currency            String                  @default("NGN") @db.Char(3)
+  status              GroupStatus             @default(DRAFT)
+  createdById         String                  @map("created_by") @db.Uuid
+  createdBy           User                    @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  members             GroupMember[]
+  invites             GroupInvite[]
+  contributions       Contribution[]
+  investmentBuckets   InvestmentBucket[]
+  investmentProposals InvestmentProposal[]
+  treasuryTransactions TreasuryTransaction[]
+  milestoneGoals      MilestoneGoal[]
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
+
+  @@index([createdById])
+  @@index([status])
+  @@map("groups")
+}
+
+model GroupMember {
+  id                  String       @id @default(uuid()) @db.Uuid
+  groupId             String       @map("group_id") @db.Uuid
+  userId              String       @map("user_id") @db.Uuid
+  group               Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributionAmount  Decimal      @map("contribution_amount") @db.Decimal(14, 2)
+  ownershipPercentage Decimal      @default(0) @map("ownership_percentage") @db.Decimal(7, 4)
+  missedCycles        Int          @default(0) @map("missed_cycles")
+  isAdmin             Boolean      @default(false) @map("is_admin")
+  status              MemberStatus @default(ACTIVE)
+  joinedAt            DateTime     @default(now()) @map("joined_at")
+  exitedAt            DateTime?    @map("exited_at")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@index([status])
+  @@map("group_members")
+}
+
+model GroupInvite {
+  id          String       @id @default(uuid()) @db.Uuid
+  groupId     String       @map("group_id") @db.Uuid
+  group       Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  email       String?
+  phone       String?
+  codeHash    String       @unique @map("code_hash")
+  status      InviteStatus @default(PENDING)
+  expiresAt   DateTime     @map("expires_at")
+  acceptedAt  DateTime?    @map("accepted_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@index([groupId])
+  @@index([status, expiresAt])
+  @@map("group_invites")
+}
+
+model Contribution {
+  id        String             @id @default(uuid()) @db.Uuid
+  userId    String             @map("user_id") @db.Uuid
+  groupId   String             @map("group_id") @db.Uuid
+  user      User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  group     Group              @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  amount    Decimal            @db.Decimal(14, 2)
+  currency  String             @default("NGN") @db.Char(3)
+  status    ContributionStatus @default(PENDING)
+  dueAt     DateTime           @map("due_at")
+  paidAt    DateTime?          @map("paid_at")
+  reference String?            @unique
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  @@index([groupId, dueAt])
+  @@index([userId, status])
+  @@map("contributions")
+}
+
+model InvestmentBucket {
+  id              String             @id @default(uuid()) @db.Uuid
+  groupId         String             @map("group_id") @db.Uuid
+  group           Group              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name            String
+  projectedRoi    Decimal            @map("projected_roi") @db.Decimal(7, 4)
+  durationMonths  Int                @map("duration_months")
+  allocatedAmount Decimal            @default(0) @map("allocated_amount") @db.Decimal(14, 2)
+  status          InvestmentStatus   @default(PROPOSED)
+  proposals       InvestmentProposal[]
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  @@index([groupId, status])
+  @@map("investment_buckets")
+}
+
+model InvestmentProposal {
+  id          String           @id @default(uuid()) @db.Uuid
+  groupId     String           @map("group_id") @db.Uuid
+  bucketId    String?          @map("bucket_id") @db.Uuid
+  group       Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  bucket      InvestmentBucket? @relation(fields: [bucketId], references: [id], onDelete: SetNull)
+  title       String
+  summary     String
+  status      InvestmentStatus @default(VOTING)
+  votingEndsAt DateTime        @map("voting_ends_at")
+  votes       Vote[]
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  @@index([groupId, status])
+  @@index([votingEndsAt])
+  @@map("investment_proposals")
+}
+
+model Vote {
+  id         String             @id @default(uuid()) @db.Uuid
+  proposalId String             @map("proposal_id") @db.Uuid
+  userId     String             @map("user_id") @db.Uuid
+  proposal   InvestmentProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vote       VoteChoice
+  createdAt  DateTime           @default(now()) @map("created_at")
+
+  @@unique([proposalId, userId])
+  @@index([userId])
+  @@map("votes")
+}
+
+model TreasuryTransaction {
+  id          String                  @id @default(uuid()) @db.Uuid
+  groupId     String                  @map("group_id") @db.Uuid
+  group       Group                   @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  type        TreasuryTransactionType
+  amount      Decimal                 @db.Decimal(14, 2)
+  currency    String                  @default("NGN") @db.Char(3)
+  reference   String                  @unique
+  metadata    Json?
+  createdAt   DateTime                @default(now()) @map("created_at")
+
+  @@index([groupId, createdAt])
+  @@index([type])
+  @@map("treasury_transactions")
+}
+
+model MilestoneGoal {
+  id           String   @id @default(uuid()) @db.Uuid
+  groupId      String   @map("group_id") @db.Uuid
+  group        Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name         String
+  targetAmount Decimal  @map("target_amount") @db.Decimal(14, 2)
+  currency     String   @default("NGN") @db.Char(3)
+  dueAt        DateTime? @map("due_at")
+  achievedAt   DateTime? @map("achieved_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([groupId])
+  @@map("milestone_goals")
+}
+
+model OtpVerification {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String?   @map("user_id") @db.Uuid
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identifier String
+  codeHash   String    @map("code_hash")
+  expiresAt  DateTime  @map("expires_at")
+  verifiedAt DateTime? @map("verified_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([identifier, expiresAt])
+  @@map("otp_verifications")
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshHash  String   @map("refresh_hash")
+  expiresAt    DateTime @map("expires_at")
+  revokedAt    DateTime? @map("revoked_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  actorId   String?  @map("actor_id") @db.Uuid
+  actor     User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  target    String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+

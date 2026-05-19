@@ -1,0 +1,31 @@
+﻿{
+  "name": "12th-cauldron",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Collaborative savings and investment platform monorepo.",
+  "packageManager": "pnpm@11.1.3",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "build": "turbo build --filter=./apps/* --filter=./backend --filter=./packages/* --filter=./tooling/*",
+    "clean": "turbo clean",
+    "dev": "turbo dev --filter=./apps/* --filter=./backend --filter=./packages/* --filter=./tooling/*",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "turbo lint --filter=./apps/* --filter=./backend --filter=./packages/* --filter=./tooling/*",
+    "typecheck": "turbo typecheck --filter=./apps/* --filter=./backend --filter=./packages/* --filter=./tooling/*"
+  },
+  "devDependencies": {
+    "@12th-cauldron/eslint-config": "workspace:*",
+    "@12th-cauldron/prettier-config": "workspace:*",
+    "@12th-cauldron/typescript-config": "workspace:*",
+    "eslint": "^10.4.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "turbo": "^2.9.14",
+    "typescript": "^6.0.3"
+  },
+  "prettier": "@12th-cauldron/prettier-config"
+}

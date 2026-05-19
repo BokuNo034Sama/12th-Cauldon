@@ -1,0 +1,41 @@
+{
+  "name": "@12th-cauldron/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "db:generate": "prisma generate --schema ../prisma/schema.prisma",
+    "dev": "tsx watch src/main.ts",
+    "lint": "eslint .",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "db:migrate": "prisma migrate dev --schema ../prisma/schema.prisma",
+    "db:seed": "tsx ../prisma/seed.ts"
+  },
+  "dependencies": {
+    "@12th-cauldron/env": "workspace:*",
+    "@nestjs/common": "11.1.21",
+    "@nestjs/config": "4.0.4",
+    "@nestjs/core": "11.1.21",
+    "@nestjs/jwt": "11.0.2",
+    "@nestjs/platform-express": "11.1.21",
+    "@prisma/adapter-pg": "7.8.0",
+    "@prisma/client": "7.8.0",
+    "bcryptjs": "3.0.3",
+    "nanoid": "5.1.11",
+    "pg": "^8.21.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@12th-cauldron/eslint-config": "workspace:*",
+    "@12th-cauldron/typescript-config": "workspace:*",
+    "@types/node": "24.12.4",
+    "@types/pg": "^8.20.0",
+    "prisma": "7.8.0",
+    "tsx": "4.22.2",
+    "typescript": "^6.0.3"
+  }
+}

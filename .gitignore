@@ -1,0 +1,15 @@
+﻿.env
+.env.*
+!.env.example
+
+.turbo
+.next
+dist
+node_modules
+coverage
+
+*.log
+*.tsbuildinfo
+
+backend/src/generated
+

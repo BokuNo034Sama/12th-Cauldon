@@ -1,0 +1,10 @@
+﻿{
+  "extends": "@12th-cauldron/typescript-config/node.json",
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}
