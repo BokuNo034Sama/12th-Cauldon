@@ -13,3 +13,7 @@ coverage
 
 backend/src/generated
 
+
+12th-Cauldon
+**/backend/src/generated/**
+

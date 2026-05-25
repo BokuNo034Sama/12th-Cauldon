@@ -7,6 +7,9 @@ import { ContributionsModule } from "./contributions/contributions.module";
 import { DatabaseModule } from "./database/database.module";
 import { GroupsModule } from "./groups/groups.module";
 import { HealthModule } from "./health/health.module";
+import { InvestmentsModule } from "./investments/investments.module";
+import { MilestonesModule } from "./milestones/milestones.module";
+import { TreasuryModule } from "./treasury/treasury.module";
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { HealthModule } from "./health/health.module";
     AuthModule,
     ContributionsModule,
     GroupsModule,
+    TreasuryModule,
+    InvestmentsModule,
+    MilestonesModule,
     HealthModule,
   ],
 })
