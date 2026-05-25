@@ -9,6 +9,7 @@ import { GroupsModule } from "./groups/groups.module";
 import { HealthModule } from "./health/health.module";
 import { InvestmentsModule } from "./investments/investments.module";
 import { MilestonesModule } from "./milestones/milestones.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 import { PayoutsModule } from "./payouts/payouts.module";
 import { TreasuryModule } from "./treasury/treasury.module";
 
@@ -27,6 +28,7 @@ import { TreasuryModule } from "./treasury/treasury.module";
     InvestmentsModule,
     MilestonesModule,
     PayoutsModule,
+    NotificationsModule,
     HealthModule,
   ],
 })
